@@ -10,6 +10,10 @@ from .cursFeatureWriter import CursFeatureWriter
 from .gdefFeatureWriter import GdefFeatureWriter
 from .kernFeatureWriter import KernFeatureWriter
 from .markFeatureWriter import MarkFeatureWriter
+from .variableCursWriter import VariableCursFeatureWriter
+from .variableKernWriter import VariableKernFeatureWriter
+from .variableMarkWriter import VariableMarkFeatureWriter
+from .variableRulesWriter import VariableRulesFeatureWriter
 
 __all__ = [
     "BaseFeatureWriter",
@@ -17,8 +21,18 @@ __all__ = [
     "GdefFeatureWriter",
     "KernFeatureWriter",
     "MarkFeatureWriter",
+    "VariableCursFeatureWriter",
+    "VariableKernFeatureWriter",
+    "VariableMarkFeatureWriter",
+    "VariableRulesFeatureWriter",
     "loadFeatureWriters",
 ]
+
+variableWriters = {
+    "CursFeatureWriter": "VariableCursFeatureWriter",
+    "KernFeatureWriter": "VariableKernFeatureWriter",
+    "MarkFeatureWriter": "VariableMarkFeatureWriter"
+}
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +62,7 @@ def isValidFeatureWriter(klass):
     return True
 
 
-def loadFeatureWriters(ufo, ignoreErrors=True):
+def loadFeatureWriters(ufo, ignoreErrors=True, variable=False):
     """Check UFO lib for key "com.github.googlei18n.ufo2ft.featureWriters",
     containing a list of dicts, each having the following key/value pairs:
     For example:
@@ -62,6 +76,10 @@ def loadFeatureWriters(ufo, ignoreErrors=True):
     Import each feature writer class from the specified module (default is
     the built-in ufo2ft.featureWriters), and instantiate it with the given
     'options' dict.
+
+    If ``variable`` is true, then the feature writer class is asked if it
+    has an associated class which works on Designspace files instead of UFOs,
+    and if so, then this is used instead.
 
     Return the list of feature writer objects.
     If the 'featureWriters' key is missing from the UFO lib, return None.
@@ -80,6 +98,8 @@ def loadFeatureWriters(ufo, ignoreErrors=True):
             if not isinstance(options, dict):
                 raise TypeError(type(options))
             module = importlib.import_module(moduleName)
+            if variable and className in variableWriters:
+                className = variableWriters[className]
             klass = getattr(module, className)
             if not isValidFeatureWriter(klass):
                 raise TypeError(klass)
