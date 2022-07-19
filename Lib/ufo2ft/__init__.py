@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from enum import IntEnum
 
 from fontTools import varLib
@@ -13,8 +14,9 @@ from ufo2ft.featureCompiler import (
     MTI_FEATURES_PREFIX,
     FeatureCompiler,
     MtiFeatureCompiler,
+    VariableFeatureCompiler
 )
-from ufo2ft.outlineCompiler import OutlineOTFCompiler, OutlineTTFCompiler
+from ufo2ft.outlineCompiler import OutlineOTFCompiler, OutlineTTFCompiler, StubGlyph
 from ufo2ft.postProcessor import PostProcessor
 from ufo2ft.preProcessor import (
     OTFPreProcessor,
@@ -597,7 +599,7 @@ def compileVariableTTFs(designSpaceDoc: DesignSpaceDocument, **kwargs):
     if not inplace:
         designSpaceDoc = designSpaceDoc.deepcopyExceptFonts()
 
-    vfNameToBaseUfo = _compileNeededSources(
+    vfNameToBaseUfo, featuresNeeded, originalSources = _compileNeededSources(
         kwargs, designSpaceDoc, variableFontNames, compileInterpolatableTTFsFromDS
     )
 
@@ -613,6 +615,9 @@ def compileVariableTTFs(designSpaceDoc: DesignSpaceDocument, **kwargs):
         skip_vf=lambda vf_name: variableFontNames and vf_name not in variableFontNames,
         colr_layer_reuse=colrLayerReuse,
     )
+
+    if featuresNeeded:
+        compile_all_variable_features(designSpaceDoc, vfNameToTTFont, originalSources, kwargs["debugFeatureFile"])
 
     for vfName, varfont in list(vfNameToTTFont.items()):
         vfNameToTTFont[vfName] = call_postprocessor(
@@ -709,7 +714,7 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
     if not inplace:
         designSpaceDoc = designSpaceDoc.deepcopyExceptFonts()
 
-    vfNameToBaseUfo = _compileNeededSources(
+    vfNameToBaseUfo, doneFeatures, originalSources = _compileNeededSources(
         kwargs, designSpaceDoc, variableFontNames, compileInterpolatableOTFsFromDS
     )
 
@@ -729,6 +734,9 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
         colr_layer_reuse=colrLayerReuse,
     )
 
+    if featuresNeeded:
+        compile_all_variable_features(designSpaceDoc, vfNameToTTFont, originalSources, kwargs["debugFeatureFile"])
+
     for vfName, varfont in list(vfNameToTTFont.items()):
         vfNameToTTFont[vfName] = call_postprocessor(
             varfont,
@@ -739,6 +747,18 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
         )
 
     return vfNameToTTFont
+
+
+def _featuresCompatible(designSpaceDoc):
+    def transform(f):
+        # Strip comments
+        text = re.sub("(?m)#.*$","", f.font.features.text)
+        # Strip extraneous whitespace
+        text = re.sub(r"\s+", " ", text)
+        return text
+
+    first = transform(designSpaceDoc.sources[0])
+    return all(transform(s) == first for s in designSpaceDoc.sources[1:])
 
 
 def _compileNeededSources(
@@ -772,6 +792,14 @@ def _compileNeededSources(
         if source.name in sourcesToCompile:
             sourcesByName[source.name] = source
 
+    # If the feature files are compatible between the sources, we can save
+    # time by building a variable feature file right at the end.
+    can_optimize_features = _featuresCompatible(designSpaceDoc)
+    if can_optimize_features:
+        logger.info(f"Features are compatible across masters; building later")
+
+    originalSources = {}
+
     # Compile all needed sources in each interpolable subspace to make sure
     # they're all compatible; that also ensures that sub-vfs within the same
     # interpolable sub-space are compatible too.
@@ -794,6 +822,7 @@ def _compileNeededSources(
                         useProductionNames=False,  # will rename glyphs after varfont is built
                         # No need to post-process intermediate fonts.
                         postProcessorClass=None,
+                        skipFeatureCompilation=can_optimize_features
                     ),
                 },
             )
@@ -803,6 +832,45 @@ def _compileNeededSources(
 
         # Stick TTFs back into original big DS
         for ttfSource in ttfDesignSpace.sources:
+            if can_optimize_features:
+                originalSources[ttfSource.name] = sourcesByName[ttfSource.name].font
             sourcesByName[ttfSource.name].font = ttfSource.font
 
-    return vfNameToBaseUfo
+    return vfNameToBaseUfo, can_optimize_features, originalSources
+
+
+def compile_all_variable_features(designSpaceDoc, vfNameToTTFont, originalSources, debugFeatureFile=False):
+    interpolableSubDocs = [
+        subDoc for _location, subDoc in splitInterpolable(designSpaceDoc)
+    ]
+    vfNameToBaseUfo = {}
+    sourcesToCompile = set()
+    for subDoc in interpolableSubDocs:
+        for vfName, vfDoc in splitVariableFonts(subDoc):
+            if vfName not in vfNameToTTFont:
+                continue
+            ttFont = vfNameToTTFont[vfName]
+            # vfDoc is now full of TTFs, create a UFO-sourced equivalent
+            ufoDoc = vfDoc.deepcopyExceptFonts()
+            for ttfSource, ufoSource in zip(vfDoc.sources, ufoDoc.sources):
+                ufoSource.font = originalSources[ttfSource.name]
+            compile_variable_features(ufoDoc, ttFont, debugFeatureFile)
+
+
+def compile_variable_features(designSpaceDoc, ttFont, debugFeatureFile):
+    default_ufo = designSpaceDoc.findDefault().font
+
+    # Delete anything from the UFO glyphset which didn't make it into the font.
+    fontglyphs = ttFont.getGlyphOrder()
+    glyphSet = {g.name: g for g in default_ufo if g.name in fontglyphs}
+
+    # Add anything we added to the TTF without telling the UFO
+    if ".notdef" not in glyphSet:
+        glyphSet[".notdef"] = StubGlyph(".notdef", 0, 0, 0, 0)
+
+    featureCompiler = VariableFeatureCompiler(default_ufo, designSpaceDoc, ttFont=ttFont, glyphSet=glyphSet)
+    otFont = featureCompiler.compile()
+
+    if debugFeatureFile:
+        if hasattr(featureCompiler, "writeFeatures"):
+            featureCompiler.writeFeatures(debugFeatureFile)
