@@ -587,3 +587,21 @@ def getMaxComponentDepth(glyph, glyphSet, maxComponentDepth=0):
         maxComponentDepth = max(maxComponentDepth, componentDepth)
 
     return maxComponentDepth
+
+
+def get_userspace_location(designspace, location):
+    """Map a location from designspace to userspace across all axes."""
+    axis_map = {axis.name: axis.tag for axis in designspace.axes}
+    axis_to_userspace = {axis.name: axis.map_backward for axis in designspace.axes}
+    return {axis_map[name]: axis_to_userspace[name](v) for name, v in location.items()}
+
+
+def collapse_varscalar(varscalar, threshold=0):
+    """Collapse a variable scalar to a plain scalar if all values are similar"""
+    # This should eventually be a method on the VariableScalar object
+    values = list(varscalar.values.values())
+    if not any( abs(v-values[0]) > threshold for v in values[1:]):
+        return list(varscalar.values.values())[0]
+    return varscalar
+
+
