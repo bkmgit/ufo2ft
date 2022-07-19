@@ -1,5 +1,7 @@
+from fontTools.misc.fixedTools import otRound
+
 from ufo2ft.featureWriters import BaseFeatureWriter, ast
-from ufo2ft.util import classifyGlyphs, unicodeScriptDirection, otRoundIgnoringVariable
+from ufo2ft.util import classifyGlyphs, unicodeScriptDirection
 
 
 class CursFeatureWriter(BaseFeatureWriter):
@@ -87,19 +89,22 @@ class CursFeatureWriter(BaseFeatureWriter):
 
         return lookup
 
+    def _getAnchors(self, glyphName, glyph=None):
+        entryAnchor = exitAnchor = None
+        for anchor in glyph.anchors:
+            if entryAnchor and exitAnchor:
+                break
+            if anchor.name == "entry":
+                entryAnchor = ast.Anchor(x=otRound(anchor.x), y=otRound(anchor.y))
+            elif anchor.name == "exit":
+                exitAnchor = ast.Anchor(x=otRound(anchor.x), y=otRound(anchor.y))
+        return entryAnchor, exitAnchor
+
     def _makeCursiveStatements(self, glyphs):
         cursiveAnchors = dict()
         statements = []
         for glyph in glyphs:
-            entryAnchor = exitAnchor = None
-            for anchor in glyph.anchors:
-                if entryAnchor and exitAnchor:
-                    break
-                if anchor.name == "entry":
-                    entryAnchor = ast.Anchor(x=otRoundIgnoringVariable(anchor.x), y=otRoundIgnoringVariable(anchor.y))
-                elif anchor.name == "exit":
-                    exitAnchor = ast.Anchor(x=otRoundIgnoringVariable(anchor.x), y=otRoundIgnoringVariable(anchor.y))
-
+            entryAnchor, exitAnchor = self._getAnchors(glyph.name, glyph)
             # A glyph can have only one of the cursive anchors (e.g. if it
             # attaches on one side only)
             if entryAnchor or exitAnchor:
