@@ -503,7 +503,16 @@ def _loadPluginFromString(spec, moduleName, isValidFunc):
 
 def quantize(number, factor):
     """Round to a multiple of the given parameter"""
+    if not isinstance(number, (float, int)):
+        # Some kind of variable scalar
+        return number
     return factor * otRound(number / factor)
+
+
+def otRoundIgnoringVariable(number):
+    if not isinstance(number, (float, int)):
+        return number
+    return otRound(number)
 
 
 def init_kwargs(kwargs, defaults):

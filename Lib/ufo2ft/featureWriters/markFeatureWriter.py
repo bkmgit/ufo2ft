@@ -3,11 +3,9 @@ import re
 from collections import OrderedDict, defaultdict
 from functools import partial
 
-from fontTools.misc.fixedTools import otRound
-
 from ufo2ft.constants import INDIC_SCRIPTS, USE_SCRIPTS
 from ufo2ft.featureWriters import BaseFeatureWriter, ast
-from ufo2ft.util import classifyGlyphs, quantize, unicodeInScripts
+from ufo2ft.util import classifyGlyphs, quantize, unicodeInScripts, otRoundIgnoringVariable
 
 
 class AbstractMarkPos:
@@ -29,7 +27,7 @@ class AbstractMarkPos:
 
     def _marksAsAST(self):
         return [
-            (ast.Anchor(x=otRound(anchor.x), y=otRound(anchor.y)), anchor.markClass)
+            (ast.Anchor(x=otRoundIgnoringVariable(anchor.x), y=otRoundIgnoringVariable(anchor.y)), anchor.markClass)
             for anchor in sorted(self.marks, key=lambda a: a.name)
         ]
 
@@ -76,7 +74,7 @@ class MarkToLigaPos(AbstractMarkPos):
     def _marksAsAST(self):
         return [
             [
-                (ast.Anchor(x=otRound(anchor.x), y=otRound(anchor.y)), anchor.markClass)
+                (ast.Anchor(x=otRoundIgnoringVariable(anchor.x), y=otRoundIgnoringVariable(anchor.y)), anchor.markClass)
                 for anchor in sorted(component, key=lambda a: a.name)
             ]
             for component in self.marks
@@ -408,7 +406,7 @@ class MarkFeatureWriter(BaseFeatureWriter):
         return newDefs
 
     def _defineMarkClass(self, glyphName, x, y, className, markClasses):
-        anchor = ast.Anchor(x=otRound(x), y=otRound(y))
+        anchor = ast.Anchor(x=otRoundIgnoringVariable(x), y=otRoundIgnoringVariable(y))
         markClass = markClasses.get(className)
         if markClass is None:
             markClass = ast.MarkClass(className)
