@@ -15,7 +15,10 @@ from ufo2ft.featureWriters import (
     CursFeatureWriter,
     GdefFeatureWriter,
     KernFeatureWriter,
+    VariableKernFeatureWriter,
     MarkFeatureWriter,
+    VariableMarkFeatureWriter,
+    VariableRulesFeatureWriter,
     ast,
     isValidFeatureWriter,
     loadFeatureWriters,
@@ -92,6 +95,10 @@ class BaseFeatureCompiler:
 
         glyphOrder = ttFont.getGlyphOrder()
         if glyphSet is not None:
+            if set(glyphOrder) != set(glyphSet.keys()):
+                print("Glyph order incompatible")
+                print("In UFO but not in font:", set(glyphSet.keys()) - set(glyphOrder))
+                print("In font but not in UFO:", set(glyphOrder) - set(glyphSet.keys()))
             assert set(glyphOrder) == set(glyphSet.keys())
         else:
             glyphSet = ufo
@@ -227,7 +234,7 @@ class FeatureCompiler(BaseFeatureCompiler):
             if writer is ...:
                 if seen_ellipsis:
                     raise ValueError("ellipsis not allowed more than once")
-                writers = loadFeatureWriters(self.ufo)
+                writers = loadFeatureWriters(self.ufo, variable=self.designspace)
                 if writers is not None:
                     result.extend(writers)
                 else:
@@ -341,3 +348,49 @@ class MtiFeatureCompiler(BaseFeatureCompiler):
             table = mtiLib.build(features.splitlines(), self.ttFont)
             assert table.tableTag == tag
             self.ttFont[tag] = table
+
+
+class VariableFeatureCompiler(FeatureCompiler):
+    """Generate a variable feature file and compile OpenType tables from a
+    designspace file.
+    """
+
+    defaultFeatureWriters = [
+        VariableKernFeatureWriter,
+        VariableMarkFeatureWriter,
+        GdefFeatureWriter,
+        # VariableCursFeatureWriter,
+    ]
+
+    def __init__(
+        self,
+        ufo,
+        designspace,
+        ttFont=None,
+        glyphSet=None,
+        featureWriters=None,
+        **kwargs,
+    ):
+        self.designspace = designspace
+        super().__init__(ufo, ttFont, glyphSet, featureWriters, **kwargs)
+
+    def setupFeatures(self):
+        if self.featureWriters:
+            featureFile = parseLayoutFeatures(self.ufo)
+
+            for writer in self.featureWriters:
+                writer.write(self.designspace, featureFile, compiler=self)
+
+            # stringify AST to get correct line numbers in error messages
+            self.features = featureFile.asFea()
+        else:
+            # no featureWriters, simply read existing features' text
+            self.features = self.ufo.features.text or ""
+
+    def initFeatureWriters(self, featureWriters=None):
+        super().initFeatureWriters(featureWriters)
+        if self.designspace.rules and not any(
+            isinstance(writer, VariableRulesFeatureWriter)
+            for writer in self.featureWriters
+        ):
+            self.featureWriters = [VariableRulesFeatureWriter()] + self.featureWriters
