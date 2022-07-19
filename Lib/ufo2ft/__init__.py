@@ -100,6 +100,7 @@ base_args = dict(
     notdefGlyph=None,
     colrLayerReuse=True,
     feaIncludeDir=None,
+    skipFeatureCompilation=False,
 )
 
 compileOTF_args = {
@@ -190,7 +191,7 @@ def compileOTF(ufo, **kwargs):
     )
 
     # Only the default layer is likely to have all glyphs used in feature code.
-    if kwargs["layerName"] is None:
+    if kwargs["layerName"] is None and not kwargs["skipFeatureCompilation"]:
         compileFeatures(ufo, otf, glyphSet=glyphSet, **kwargs)
 
     return call_postprocessor(
@@ -245,7 +246,7 @@ def compileTTF(ufo, **kwargs):
     otf = call_outline_compiler(ufo, glyphSet, **kwargs)
 
     # Only the default layer is likely to have all glyphs used in feature code.
-    if kwargs["layerName"] is None:
+    if kwargs["layerName"] is None and not kwargs["skipFeatureCompilation"]:
         compileFeatures(ufo, otf, glyphSet=glyphSet, **kwargs)
 
     return call_postprocessor(otf, ufo, glyphSet, **kwargs)
@@ -261,6 +262,7 @@ compileInterpolatableTTFs_args = {
         flattenComponents=False,
         layerNames=None,
         colrLayerReuse=False,
+        skipFeatureCompilation=False,
     ),
 }
 
@@ -313,7 +315,7 @@ def compileInterpolatableTTFs(ufos, **kwargs):
 
         # Only the default layer is likely to have all glyphs used in feature
         # code.
-        if layerName is None:
+        if layerName is None and not kwargs["skipFeatureCompilation"]:
             if kwargs["debugFeatureFile"]:
                 kwargs["debugFeatureFile"].write("\n### %s ###\n" % fontName)
             compileFeatures(ufo, ttf, glyphSet=glyphSet, **kwargs)
@@ -396,6 +398,7 @@ compileInterpolatableOTFs_args = {
         roundTolerance=None,
         optimizeCFF=CFFOptimization.NONE,
         colrLayerReuse=False,
+        skipFeatureCompilation=False,
     ),
 }
 
