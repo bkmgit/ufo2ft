@@ -20,7 +20,7 @@ class VariableCursFeatureWriter(CursFeatureWriter):
                     entry_x_value.add_value(location, anchor.x)
                     entry_y_value.add_value(location, anchor.y)
                     if entry_anchor is None:
-	                    entry_anchor = ast.Anchor(x=entry_x_value, y=entry_y_value)
+                        entry_anchor = ast.Anchor(x=entry_x_value, y=entry_y_value)
                 if anchor.name == "exit":
                     location = get_userspace_location(
                         self.context.font, source.location
@@ -28,5 +28,5 @@ class VariableCursFeatureWriter(CursFeatureWriter):
                     exit_x_value.add_value(location, anchor.x)
                     exit_y_value.add_value(location, anchor.y)
                     if exit_anchor is None:
-	                    exit_anchor = ast.Anchor(x=exit_x_value, y=exit_y_value)
-	       return entry_anchor, exit_anchor
+                        exit_anchor = ast.Anchor(x=exit_x_value, y=exit_y_value)
+        return entry_anchor, exit_anchor
