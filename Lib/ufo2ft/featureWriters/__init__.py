@@ -31,7 +31,7 @@ __all__ = [
 variableWriters = {
     "CursFeatureWriter": "VariableCursFeatureWriter",
     "KernFeatureWriter": "VariableKernFeatureWriter",
-    "MarkFeatureWriter": "VariableMarkFeatureWriter"
+    "MarkFeatureWriter": "VariableMarkFeatureWriter",
 }
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,12 @@ from functools import partial
 
 from ufo2ft.constants import INDIC_SCRIPTS, USE_SCRIPTS
 from ufo2ft.featureWriters import BaseFeatureWriter, ast
-from ufo2ft.util import classifyGlyphs, quantize, unicodeInScripts, otRoundIgnoringVariable
+from ufo2ft.util import (
+    classifyGlyphs,
+    otRoundIgnoringVariable,
+    quantize,
+    unicodeInScripts,
+)
 
 
 class AbstractMarkPos:
@@ -27,7 +32,13 @@ class AbstractMarkPos:
 
     def _marksAsAST(self):
         return [
-            (ast.Anchor(x=otRoundIgnoringVariable(anchor.x), y=otRoundIgnoringVariable(anchor.y)), anchor.markClass)
+            (
+                ast.Anchor(
+                    x=otRoundIgnoringVariable(anchor.x),
+                    y=otRoundIgnoringVariable(anchor.y),
+                ),
+                anchor.markClass,
+            )
             for anchor in sorted(self.marks, key=lambda a: a.name)
         ]
 
@@ -74,7 +85,13 @@ class MarkToLigaPos(AbstractMarkPos):
     def _marksAsAST(self):
         return [
             [
-                (ast.Anchor(x=otRoundIgnoringVariable(anchor.x), y=otRoundIgnoringVariable(anchor.y)), anchor.markClass)
+                (
+                    ast.Anchor(
+                        x=otRoundIgnoringVariable(anchor.x),
+                        y=otRoundIgnoringVariable(anchor.y),
+                    ),
+                    anchor.markClass,
+                )
                 for anchor in sorted(component, key=lambda a: a.name)
             ]
             for component in self.marks

@@ -1,12 +1,14 @@
+import logging
+
+from fontTools.feaLib.variableScalar import VariableScalar
+
 from ufo2ft.featureWriters import KernFeatureWriter
 from ufo2ft.featureWriters.kernFeatureWriter import (
     SIDE1_PREFIX,
     SIDE2_PREFIX,
     KerningPair,
 )
-from ufo2ft.util import get_userspace_location, collapse_varscalar
-from fontTools.feaLib.variableScalar import VariableScalar
-import logging
+from ufo2ft.util import collapse_varscalar, get_userspace_location
 
 log = logging.getLogger(__file__)
 
@@ -84,7 +86,6 @@ class VariableKernFeatureWriter(KernFeatureWriter):
                         # Need to establish a default master value for the kern
                         location = get_userspace_location(designspace, source.location)
                         value.add_value(location, 0)
-                values = list(value.values.values())
                 value = collapse_varscalar(value)
                 if all(flags) and value == 0:
                     # ignore zero-valued class kern pairs

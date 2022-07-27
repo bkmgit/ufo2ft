@@ -3,10 +3,10 @@ import io
 import os
 import sys
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 from fontTools.pens.boundsPen import BoundsPen
-from textwrap import dedent
 
 from ufo2ft import (
     compileInterpolatableTTFs,
@@ -235,7 +235,8 @@ class IntegrationTest:
         tmp = io.StringIO()
 
         _ = compileVariableTTF(designspace, debugFeatureFile=tmp)
-        assert "\n"+tmp.getvalue() == dedent("""
+        assert "\n" + tmp.getvalue() == dedent(
+            """
             feature liga {
                 sub a e s s by s;
             } liga;
@@ -249,7 +250,8 @@ class IntegrationTest:
                 } mark2base;
 
             } mark;
-        """)
+        """
+        )
 
     @pytest.mark.parametrize(
         "output_format, options, expected_ttx",

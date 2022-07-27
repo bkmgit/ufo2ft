@@ -1,7 +1,6 @@
 import io
 from textwrap import dedent
 
-import pytest
 from fontTools import designspaceLib
 
 from ufo2ft import compileVariableTTF
@@ -13,7 +12,7 @@ def test_variable_features(FontClass):
         "tests/data/TestVarfea.designspace"
     )
     designspace.loadSourceFonts(FontClass)
-    varfont = compileVariableTTF(designspace, debugFeatureFile=tmp)
+    _ = compileVariableTTF(designspace, debugFeatureFile=tmp)
 
     assert dedent("\n" + tmp.getvalue()) == dedent(
         """

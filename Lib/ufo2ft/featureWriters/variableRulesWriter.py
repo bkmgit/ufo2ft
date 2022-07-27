@@ -1,8 +1,6 @@
-from ufo2ft.featureWriters import BaseFeatureWriter
-from types import SimpleNamespace
-from fontTools.feaLib.variableScalar import VariableScalar
 from fontTools.feaLib import ast
-from collections import OrderedDict, defaultdict
+
+from ufo2ft.featureWriters import BaseFeatureWriter
 
 
 class VariableRulesFeatureWriter(BaseFeatureWriter):
@@ -48,7 +46,6 @@ class VariableRulesFeatureWriter(BaseFeatureWriter):
 
     def rearrangeConditionSet(self, condition):
         return {
-            self._axis_map[rule["name"]]: (int(rule["minimum"]),
-            int(rule["maximum"]))
+            self._axis_map[rule["name"]]: (int(rule["minimum"]), int(rule["maximum"]))
             for rule in condition
         }

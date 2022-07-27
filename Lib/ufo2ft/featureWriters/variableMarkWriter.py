@@ -1,9 +1,10 @@
-from ufo2ft.featureWriters import MarkFeatureWriter
+from collections import OrderedDict
 from types import SimpleNamespace
+
 from fontTools.feaLib.variableScalar import VariableScalar
-from fontTools.feaLib import ast
-from collections import OrderedDict, defaultdict
-from ufo2ft.util import get_userspace_location, collapse_varscalar
+
+from ufo2ft.featureWriters import MarkFeatureWriter
+from ufo2ft.util import collapse_varscalar, get_userspace_location
 
 
 class VariableMarkFeatureWriter(MarkFeatureWriter):

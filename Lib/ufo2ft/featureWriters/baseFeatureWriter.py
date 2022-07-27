@@ -1,7 +1,7 @@
+import copy
 import logging
 from collections import OrderedDict, namedtuple
 from types import SimpleNamespace
-import copy
 
 from ufo2ft.constants import OPENTYPE_CATEGORIES_KEY
 from ufo2ft.errors import InvalidFeaturesData
