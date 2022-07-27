@@ -19,6 +19,7 @@ from ufo2ft.featureWriters import (
     MarkFeatureWriter,
     VariableMarkFeatureWriter,
     VariableRulesFeatureWriter,
+    VariableCursFeatureWriter,
     ast,
     isValidFeatureWriter,
     loadFeatureWriters,
@@ -359,7 +360,7 @@ class VariableFeatureCompiler(FeatureCompiler):
         VariableKernFeatureWriter,
         VariableMarkFeatureWriter,
         GdefFeatureWriter,
-        # VariableCursFeatureWriter,
+        VariableCursFeatureWriter,
     ]
 
     def __init__(

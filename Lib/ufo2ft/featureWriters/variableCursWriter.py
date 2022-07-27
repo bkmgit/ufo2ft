@@ -1,9 +1,9 @@
 from fontTools.feaLib.variableScalar import VariableScalar
-from ufo2ft.featureWriters import CursFeatureWriter
-
+from ufo2ft.featureWriters import CursFeatureWriter, ast
+from ufo2ft.util import get_userspace_location
 
 class VariableCursFeatureWriter(CursFeatureWriter):
-    def _getAnchors(self, glyphName):
+    def _getAnchors(self, glyphName, glyph=None):
         entry_anchor = None
         exit_anchor = None
         entry_x_value = VariableScalar()
@@ -11,7 +11,6 @@ class VariableCursFeatureWriter(CursFeatureWriter):
         exit_x_value = VariableScalar()
         exit_y_value = VariableScalar()
         for source in self.context.font.sources:
-            glyph = source.font[glyphName]
             for anchor in glyph.anchors:
                 if anchor.name == "entry":
                     location = get_userspace_location(
