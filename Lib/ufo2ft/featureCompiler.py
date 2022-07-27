@@ -235,7 +235,7 @@ class FeatureCompiler(BaseFeatureCompiler):
             if writer is ...:
                 if seen_ellipsis:
                     raise ValueError("ellipsis not allowed more than once")
-                writers = loadFeatureWriters(self.ufo, variable=self.designspace)
+                writers = loadFeatureWriters(self.ufo, variable=hasattr(self, "designspace"))
                 if writers is not None:
                     result.extend(writers)
                 else:
