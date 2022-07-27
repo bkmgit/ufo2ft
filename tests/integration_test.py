@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 from fontTools.pens.boundsPen import BoundsPen
+from textwrap import dedent
 
 from ufo2ft import (
     compileInterpolatableTTFs,
@@ -234,9 +235,21 @@ class IntegrationTest:
         tmp = io.StringIO()
 
         _ = compileVariableTTF(designspace, debugFeatureFile=tmp)
+        assert "\n"+tmp.getvalue() == dedent("""
+            feature liga {
+                sub a e s s by s;
+            } liga;
 
-        assert "### LayerFont-Regular ###" in tmp.getvalue()
-        assert "### LayerFont-Bold ###" in tmp.getvalue()
+            markClass dotabovecomb <anchor -2 465> @MC_top;
+
+            feature mark {
+                lookup mark2base {
+                    pos base e
+                        <anchor (wght=350:314 wght=450:314 wght=625:315) (wght=350:556 wght=450:556 wght=625:644)> mark @MC_top;
+                } mark2base;
+
+            } mark;
+        """)
 
     @pytest.mark.parametrize(
         "output_format, options, expected_ttx",
