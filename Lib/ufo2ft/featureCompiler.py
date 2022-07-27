@@ -387,11 +387,3 @@ class VariableFeatureCompiler(FeatureCompiler):
         else:
             # no featureWriters, simply read existing features' text
             self.features = self.ufo.features.text or ""
-
-    def initFeatureWriters(self, featureWriters=None):
-        super().initFeatureWriters(featureWriters)
-        if self.designspace.rules and not any(
-            isinstance(writer, VariableRulesFeatureWriter)
-            for writer in self.featureWriters
-        ):
-            self.featureWriters = [VariableRulesFeatureWriter()] + self.featureWriters

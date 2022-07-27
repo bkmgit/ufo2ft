@@ -17,14 +17,6 @@ def test_variable_features(FontClass):
 
     assert dedent("\n" + tmp.getvalue()) == dedent(
         """
-        conditionset ConditionSet1 {
-            wght 600 1000;
-        } ConditionSet1;
-
-        variation rvrn ConditionSet1 {
-            sub peh-ar.init by peh-ar.init.BRACKET.600;
-        } rvrn;
-
         feature curs {
             lookup curs {
                 lookupflag RightToLeft IgnoreMarks;
