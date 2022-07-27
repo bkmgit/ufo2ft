@@ -752,7 +752,7 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
 def _featuresCompatible(designSpaceDoc):
     def transform(f):
         # Strip comments
-        text = re.sub("(?m)#.*$","", f.font.features.text)
+        text = re.sub("(?m)#.*$","", f.font.features.text or "")
         # Strip extraneous whitespace
         text = re.sub(r"\s+", " ", text)
         return text
