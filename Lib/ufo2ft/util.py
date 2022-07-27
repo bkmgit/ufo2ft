@@ -221,12 +221,14 @@ def makeUnicodeToGlyphNameMapping(font, glyphOrder=None):
     return mapping
 
 
-def compileGSUB(featureFile, glyphOrder):
+def compileGSUB(featureFile, glyphOrder, fvar=None):
     """Compile and return a GSUB table from `featureFile` (feaLib
     FeatureFile), using the given `glyphOrder` (list of glyph names).
     """
     font = ttLib.TTFont()
     font.setGlyphOrder(glyphOrder)
+    if fvar:
+        font["fvar"] = fvar
     addOpenTypeFeatures(font, featureFile, tables={"GSUB"})
     return font.get("GSUB")
 
