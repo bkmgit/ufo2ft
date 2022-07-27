@@ -714,7 +714,7 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
     if not inplace:
         designSpaceDoc = designSpaceDoc.deepcopyExceptFonts()
 
-    vfNameToBaseUfo, doneFeatures, originalSources = _compileNeededSources(
+    vfNameToBaseUfo, featuresNeeded, originalSources = _compileNeededSources(
         kwargs, designSpaceDoc, variableFontNames, compileInterpolatableOTFsFromDS
     )
 
