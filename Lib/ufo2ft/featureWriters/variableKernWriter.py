@@ -34,7 +34,8 @@ class VariableKernFeatureWriter(KernFeatureWriter):
                 if name.startswith(SIDE1_PREFIX):
                     if name in side1Groups and side1Groups[name] != members:
                         log.warning(
-                            "incompatible left groups: %s was previously %s, %s tried to make it %s",
+                            "incompatible left groups: %s was previously %s,"
+                            " %s tried to make it %s",
                             name,
                             side1Groups[name],
                             font,
@@ -45,7 +46,8 @@ class VariableKernFeatureWriter(KernFeatureWriter):
                 elif name.startswith(SIDE2_PREFIX):
                     if name in side2Groups and side2Groups[name] != members:
                         log.warning(
-                            "incompatible right groups: %s was previously %s, %s tried to make it %s",
+                            "incompatible right groups: %s was previously %s,"
+                            " %s tried to make it %s",
                             name,
                             side2Groups[name],
                             font,

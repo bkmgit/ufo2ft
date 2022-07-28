@@ -250,7 +250,7 @@ class IntegrationTest:
                 } mark2base;
 
             } mark;
-        """
+        """  # noqa: B950
         )
 
     @pytest.mark.parametrize(

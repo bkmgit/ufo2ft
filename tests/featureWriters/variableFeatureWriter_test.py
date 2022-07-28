@@ -25,5 +25,5 @@ def test_variable_features(FontClass):
             } curs;
 
         } curs;
-"""
+"""  # noqa: B950
     )
