@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import logging
 import os
 import re
 from enum import IntEnum
 
 from fontTools import varLib
-from fontTools.designspaceLib import DesignSpaceDocument
+from fontTools.designspaceLib import DesignSpaceDocument, SourceDescriptor
 from fontTools.designspaceLib.split import splitInterpolable, splitVariableFonts
 from fontTools.otlLib.optimize.gpos import GPOS_COMPACT_MODE_ENV_KEY
 
@@ -753,8 +755,17 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
     return vfNameToTTFont
 
 
-def _featuresCompatible(designSpaceDoc):
-    def transform(f):
+def _featuresCompatible(designSpaceDoc: DesignSpaceDocument) -> bool:
+    """Returns whether the features of the individual source UFOs are the same.
+
+    NOTE: Only compares the feature file text inside the source UFO and does not
+    follow imports. This will suffice as long as no external feature file is
+    using variable syntax.
+    """
+
+    assert all(hasattr(source.font, "features") for source in designSpaceDoc.sources)
+
+    def transform(f: SourceDescriptor) -> str:
         # Strip comments
         text = re.sub("(?m)#.*$", "", f.font.features.text or "")
         # Strip extraneous whitespace
