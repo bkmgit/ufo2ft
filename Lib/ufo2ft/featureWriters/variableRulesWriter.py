@@ -5,6 +5,7 @@ from typing import Any
 from fontTools.designspaceLib import AxisDescriptor
 from fontTools.feaLib import ast
 from fontTools.varLib import FEAVAR_FEATURETAG_LIB_KEY
+from fontTools.varLib.featureVars import overlayFeatureVariations
 
 from ufo2ft.featureWriters import BaseFeatureWriter
 
@@ -32,30 +33,38 @@ class VariableRulesFeatureWriter(BaseFeatureWriter):
         # TODO: Generate one lookup per rule and link all condition sets to it.
         # Currently, each conditionset will generate a new identical lookup.
         feaFile = self.context.feaFile
-        self._conditionsets = []
+        _conditionsets = []
+
+        conditional_substitutions = []
         for rule in self._designspace.rules:
             conditionsets = transform_condition_sets(rule.conditionSets, axis_map)
-            for conditionset in conditionsets:
-                if conditionset not in self._conditionsets:
-                    cs_name = "ConditionSet%i" % (len(self._conditionsets) + 1)
-                    feaFile.statements.append(
-                        ast.ConditionsetStatement(cs_name, conditionset)
-                    )
-                    self._conditionsets.append(conditionset)
-                else:
-                    cs_name = "ConditionSet%i" % self._conditionsets.index(conditionset)
-                block = ast.VariationBlock(feature_tag, cs_name)
-                for sub in rule.subs:
+            conditional_substitutions.append((conditionsets, dict(rule.subs)))
+        new_conditional_substitutions = overlayFeatureVariations(
+            conditional_substitutions
+        )
+
+        for conditionset, substitutions in new_conditional_substitutions:
+            if conditionset not in _conditionsets:
+                cs_name = "ConditionSet%i" % (len(_conditionsets) + 1)
+                feaFile.statements.append(
+                    ast.ConditionsetStatement(cs_name, conditionset)
+                )
+                _conditionsets.append(conditionset)
+            else:
+                cs_name = "ConditionSet%i" % _conditionsets.index(conditionset)
+            block = ast.VariationBlock(feature_tag, cs_name)
+            for substitution in substitutions:
+                for sub_in, sub_out in substitution.items():
                     block.statements.append(
                         ast.SingleSubstStatement(
-                            [ast.GlyphName(sub[0])],
-                            [ast.GlyphName(sub[1])],
+                            [ast.GlyphName(sub_in)],
+                            [ast.GlyphName(sub_out)],
                             [],
                             [],
                             False,
                         )
                     )
-                feaFile.statements.append(block)
+            feaFile.statements.append(block)
 
 
 def transform_condition_sets(
