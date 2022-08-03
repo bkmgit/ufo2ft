@@ -760,7 +760,8 @@ def _featuresCompatible(designSpaceDoc: DesignSpaceDocument) -> bool:
 
     NOTE: Only compares the feature file text inside the source UFO and does not
     follow imports. This will suffice as long as no external feature file is
-    using variable syntax.
+    using variable syntax and all sources are stored n the same parent folder
+    (so the same includes point to the same files).
     """
 
     assert all(hasattr(source.font, "features") for source in designSpaceDoc.sources)
