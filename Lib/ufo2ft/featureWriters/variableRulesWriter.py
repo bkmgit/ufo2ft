@@ -1,4 +1,5 @@
 from fontTools.feaLib import ast
+from fontTools.varLib import FEAVAR_FEATURETAG_LIB_KEY
 
 from ufo2ft.featureWriters import BaseFeatureWriter
 
@@ -17,6 +18,11 @@ class VariableRulesFeatureWriter(BaseFeatureWriter):
         self._designspace = self.context.font
         self._axis_map = {axis.name: axis.tag for axis in self._designspace.axes}
 
+        feature_tag = self._designspace.lib.get(
+            FEAVAR_FEATURETAG_LIB_KEY,
+            "rclt" if self._designspace.rulesProcessingLast else "rvrn",
+        )
+
         feaFile = self.context.feaFile
         self._conditionsets = []
         for r in self._designspace.rules:
@@ -31,7 +37,7 @@ class VariableRulesFeatureWriter(BaseFeatureWriter):
                 else:
                     cs_name = "ConditionSet%i" % self._conditionsets.index(conditionset)
                 # XXX
-                block = ast.VariationBlock("rvrn", cs_name)
+                block = ast.VariationBlock(feature_tag, cs_name)
                 for sub in r.subs:
                     block.statements.append(
                         ast.SingleSubstStatement(

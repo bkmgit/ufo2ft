@@ -23,6 +23,7 @@ from ufo2ft.featureWriters import (
     isValidFeatureWriter,
     loadFeatureWriters,
 )
+from ufo2ft.featureWriters.variableRulesWriter import VariableRulesFeatureWriter
 
 logger = logging.getLogger(__name__)
 
@@ -358,6 +359,7 @@ class VariableFeatureCompiler(FeatureCompiler):
     """
 
     defaultFeatureWriters = [
+        VariableRulesFeatureWriter,
         VariableKernFeatureWriter,
         VariableMarkFeatureWriter,
         GdefFeatureWriter,
