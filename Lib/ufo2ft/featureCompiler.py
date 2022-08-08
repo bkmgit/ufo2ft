@@ -23,7 +23,6 @@ from ufo2ft.featureWriters import (
     isValidFeatureWriter,
     loadFeatureWriters,
 )
-from ufo2ft.featureWriters.variableRulesWriter import VariableRulesFeatureWriter
 
 logger = logging.getLogger(__name__)
 
@@ -358,8 +357,10 @@ class VariableFeatureCompiler(FeatureCompiler):
     designspace file.
     """
 
+    # NOTE: Currently, there is no `VariableRulesFeatureWriter`, as we (hackily)
+    # reuse the functionality in varLib's merge function, which adds it directly
+    # to a font object in a post-processing step.
     defaultFeatureWriters = [
-        VariableRulesFeatureWriter,
         VariableKernFeatureWriter,
         VariableMarkFeatureWriter,
         GdefFeatureWriter,

@@ -892,3 +892,17 @@ def compile_variable_features(designSpaceDoc, ttFont, debugFeatureFile):
     if debugFeatureFile:
         if hasattr(featureCompiler, "writeFeatures"):
             featureCompiler.writeFeatures(debugFeatureFile)
+
+    # Add back feature variations, as the code above would overwrite them.
+    designSpaceData = varLib.load_designspace(designSpaceDoc)
+    featureTag = designSpaceData.lib.get(
+        varLib.FEAVAR_FEATURETAG_LIB_KEY,
+        "rclt" if designSpaceData.rulesProcessingLast else "rvrn",
+    )
+    varLib._add_GSUB_feature_variations(
+        ttFont,
+        designSpaceData.axes,
+        designSpaceData.internal_axis_supports,
+        designSpaceData.rules,
+        featureTag,
+    )

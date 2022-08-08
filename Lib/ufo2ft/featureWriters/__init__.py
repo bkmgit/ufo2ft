@@ -13,7 +13,6 @@ from .markFeatureWriter import MarkFeatureWriter
 from .variableCursWriter import VariableCursFeatureWriter
 from .variableKernWriter import VariableKernFeatureWriter
 from .variableMarkWriter import VariableMarkFeatureWriter
-from .variableRulesWriter import VariableRulesFeatureWriter
 
 __all__ = [
     "BaseFeatureWriter",
@@ -24,7 +23,6 @@ __all__ = [
     "VariableCursFeatureWriter",
     "VariableKernFeatureWriter",
     "VariableMarkFeatureWriter",
-    "VariableRulesFeatureWriter",
     "loadFeatureWriters",
 ]
 
