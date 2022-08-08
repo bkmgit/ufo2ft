@@ -610,6 +610,10 @@ def compileVariableTTFs(designSpaceDoc: DesignSpaceDocument, **kwargs):
 
     logger.info("Building variable TTF fonts: %s", ", ".join(vfNameToBaseUfo))
 
+    if featuresNeeded:
+        # Skip generating feature variations in varLib.
+        excludeVariationTables = set(excludeVariationTables) | {"GSUB"}
+
     vfNameToTTFont = varLib.build_many(
         designSpaceDoc,
         exclude=excludeVariationTables,
@@ -727,6 +731,10 @@ def compileVariableCFF2s(designSpaceDoc, **kwargs):
         return {}
 
     logger.info(f"Building variable CFF2 fonts: {', '.join(vfNameToBaseUfo)}")
+
+    if featuresNeeded:
+        # Skip generating feature variations in varLib.
+        excludeVariationTables = set(excludeVariationTables) | {"GSUB"}
 
     vfNameToTTFont = varLib.build_many(
         designSpaceDoc,
