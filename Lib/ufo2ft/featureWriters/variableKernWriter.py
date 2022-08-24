@@ -1,5 +1,9 @@
-import logging
+from __future__ import annotations
 
+import logging
+from typing import Any
+
+from fontTools.designspaceLib import DesignSpaceDocument
 from fontTools.feaLib.variableScalar import VariableScalar
 
 from ufo2ft.featureWriters import KernFeatureWriter
@@ -15,46 +19,39 @@ log = logging.getLogger(__file__)
 
 class VariableKernFeatureWriter(KernFeatureWriter):
     @staticmethod
-    def getKerningGroups(designspace, glyphSet=None):
+    def getKerningGroups(
+        designspace: DesignSpaceDocument, glyphSet: dict[str, Any] | None = None
+    ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         if glyphSet:
             allGlyphs = set(glyphSet.keys())
         else:
-            allGlyphs = set(designspace.findDefault().font.keys())
-        side1Groups = {}
-        side2Groups = {}
+            default_source = designspace.findDefault()
+            assert default_source is not None and default_source.font is not None
+            allGlyphs = set(default_source.font.keys())
+        side1Groups: dict[str, list[str]] = {}
+        side2Groups: dict[str, list[str]] = {}
         for source in designspace.sources:
             font = source.font
+            assert font is not None
             for name, members in font.groups.items():
                 # prune non-existent or skipped glyphs
-                members = [g for g in members if g in allGlyphs]
+                members = {g for g in members if g in allGlyphs}
+                # skip empty groups
                 if not members:
-                    # skip empty groups
                     continue
                 # skip groups without UFO3 public.kern{1,2} prefix
                 if name.startswith(SIDE1_PREFIX):
-                    if name in side1Groups and side1Groups[name] != members:
-                        log.warning(
-                            "incompatible left groups: %s was previously %s,"
-                            " %s tried to make it %s",
-                            name,
-                            side1Groups[name],
-                            font,
-                            members,
-                        )
-                        continue
-                    side1Groups[name] = members
+                    group = side1Groups.get(name)
+                    if group is None:
+                        side1Groups[name] = sorted(members)
+                    elif set(group) != members:
+                        log_redefined_group("left", name, group, font, members)
                 elif name.startswith(SIDE2_PREFIX):
-                    if name in side2Groups and side2Groups[name] != members:
-                        log.warning(
-                            "incompatible right groups: %s was previously %s,"
-                            " %s tried to make it %s",
-                            name,
-                            side2Groups[name],
-                            font,
-                            members,
-                        )
-                        continue
-                    side2Groups[name] = members
+                    group = side2Groups.get(name)
+                    if group is None:
+                        side2Groups[name] = sorted(members)
+                    elif set(group) != members:
+                        log_redefined_group("right", name, group, font, members)
         return side1Groups, side2Groups
 
     @staticmethod
@@ -99,3 +96,16 @@ class VariableKernFeatureWriter(KernFeatureWriter):
                     side2 = side2Classes[side2]
                 result.append(KerningPair(side1, side2, value))
         return result
+
+
+def log_redefined_group(
+    side: str, name: str, group: list[str], font: Any, members: set[str]
+) -> None:
+    log.warning(
+        "incompatible %s groups: %s was previously %s, %s tried to make it %s",
+        side,
+        name,
+        sorted(group),
+        font,
+        sorted(members),
+    )
