@@ -907,10 +907,11 @@ def compile_variable_features(designSpaceDoc, ttFont, debugFeatureFile):
         varLib.FEAVAR_FEATURETAG_LIB_KEY,
         "rclt" if designSpaceData.rulesProcessingLast else "rvrn",
     )
-    varLib._add_GSUB_feature_variations(
-        ttFont,
-        designSpaceData.axes,
-        designSpaceData.internal_axis_supports,
-        designSpaceData.rules,
-        featureTag,
-    )
+    if designSpaceData.rules:
+        varLib._add_GSUB_feature_variations(
+            ttFont,
+            designSpaceData.axes,
+            designSpaceData.internal_axis_supports,
+            designSpaceData.rules,
+            featureTag,
+        )
