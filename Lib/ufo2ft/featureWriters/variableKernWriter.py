@@ -33,16 +33,16 @@ class VariableKernFeatureWriter(KernFeatureWriter):
         # only consider the groups from the default source, as we do for
         # instance generation.
         for name, members in default_source.font.groups.items():
-            # prune non-existent or skipped glyphs
-            members = {g for g in members if g in allGlyphs}
+            # prune non-existent or skipped glyphs and sort for determinism.
+            members = sorted(g for g in members if g in allGlyphs)
             # skip empty groups
             if not members:
                 continue
             # skip groups without UFO3 public.kern{1,2} prefix
             if name.startswith(SIDE1_PREFIX):
-                side1Groups[name] = sorted(members)
+                side1Groups[name] = members
             elif name.startswith(SIDE2_PREFIX):
-                side2Groups[name] = sorted(members)
+                side2Groups[name] = members
         return side1Groups, side2Groups
 
     @staticmethod
