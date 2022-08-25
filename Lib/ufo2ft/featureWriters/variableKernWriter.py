@@ -69,12 +69,22 @@ class VariableKernFeatureWriter(KernFeatureWriter):
             for side1, side2 in sorted(pairs):
                 value = VariableScalar()
                 for source in designspace.sources:
+                    location = get_userspace_location(designspace, source.location)
                     if (side1, side2) in source.font.kerning:
-                        location = get_userspace_location(designspace, source.location)
                         value.add_value(location, source.font.kerning[side1, side2])
-                    elif source.font == default_font:
-                        # Need to establish a default master value for the kern
-                        location = get_userspace_location(designspace, source.location)
+                    else:
+                        # We assume that any missing kern values are zero.
+                        # It would be really nice to be able to omit missing kern
+                        # values from the variable scalar; that way, they would
+                        # be interpolated, and that would mean that designers
+                        # wouldn't need to add explicit kerns for intermediate masters
+                        # where interpolation would do the right thing.
+                        # But there isn't a way to do that and still be backwards
+                        # compatible with previous versions - in previous versions,
+                        # explicitly zero kern values would be dropped when writing the
+                        # master-specific binary TTFs, so when merging we had to
+                        # assume that any missing values were zero.
+                        # So we do the same here.
                         value.add_value(location, 0)
                 value = collapse_varscalar(value)
                 if all(flags) and value == 0:
