@@ -51,7 +51,7 @@ class VariableKernFeatureWriter(KernFeatureWriter):
         if glyphSet:
             allGlyphs = set(glyphSet.keys())
         else:
-            allGlyphs = set(default_font)
+            allGlyphs = set(default_font.keys())
 
         pairsByFlags = {}
         for source in designspace.sources:
